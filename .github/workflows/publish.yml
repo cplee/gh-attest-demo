@@ -2,7 +2,6 @@ name: publish
 
 env:
   # IMAGE_URL: 590184084703.dkr.ecr.us-east-1.amazonaws.com/gh-attest-demo
-  REKOR_REKOR_SERVER: http://internal-CodeLe-LoadB-pVpaDEdB6vXx-742236616.us-east-1.elb.amazonaws.com 
 
 on:
   workflow_dispatch:
@@ -68,6 +67,7 @@ jobs:
         with:
           subject-path: bucket.tf
           push-to-registry: false
+          rekor-url: http://internal-CodeLe-LoadB-pVpaDEdB6vXx-742236616.us-east-1.elb.amazonaws.com 
       - uses: actions/attest-sbom@v1
         id: sbom
         with:
