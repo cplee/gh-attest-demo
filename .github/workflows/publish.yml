@@ -1,6 +1,6 @@
 name: publish
 
-env:
+#env:
   # IMAGE_URL: 590184084703.dkr.ecr.us-east-1.amazonaws.com/gh-attest-demo
 
 on:
