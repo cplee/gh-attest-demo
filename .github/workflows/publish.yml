@@ -67,10 +67,12 @@ jobs:
         uses: actions/attest-build-provenance@v1
         with:
           subject-path: bucket.tf
+          push-to-registry: false
       - uses: actions/attest-sbom@v1
         id: sbom
         with:
           subject-path: bucket.tf
           sbom-path: 'sbom.spdx.json'
+          push-to-registry: false
       - run: ls -alFt ${steps.provenance.outputs.bundle-path}
       - run: ls -alFt ${steps.sbom.outputs.bundle-path}
