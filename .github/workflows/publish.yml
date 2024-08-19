@@ -64,7 +64,7 @@ jobs:
       #     path: bucket.tf
       - name: Generate artifact attestation for IaC
         id: provenance
-        uses: actions/attest-build-provenance@v1
+        uses: cplee/attest-build-provenance
         with:
           subject-path: bucket.tf
           push-to-registry: false
