@@ -1,3 +1,3 @@
 resource "aws_s3_bucket" "sample" {
-  bucket = "sample-flask-app-bucket-v2"
+  bucket = "sample-flask-app-bucket-v3"
 }
