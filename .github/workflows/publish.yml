@@ -1,7 +1,7 @@
 name: publish
 
-#env:
-  # IMAGE_URL: 590184084703.dkr.ecr.us-east-1.amazonaws.com/gh-attest-demo
+env:
+  IMAGE_URL: 590184084703.dkr.ecr.us-east-1.amazonaws.com/gh-attest-demo
 
 on:
   workflow_dispatch:
@@ -24,32 +24,46 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      # - name: Login to Amazon ECR
-      #   id: login-ecr
-      #   uses: aws-actions/amazon-ecr-login@v2
-      # - name: Extract metadata (tags, labels) for Docker
-      #   id: meta
-      #   uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Extract metadata (tags, labels) for Docker
+        id: meta
+        uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
+        with:
+          images: ${{ env.IMAGE_URL }}
+      - uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: 'spdx-json'
+          output-file: 'sbom.spdx.json'
+      - name: Build and push Docker image
+        id: push
+        uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+      - name: Generate artifact attestation
+        uses: cplee/attest-build-provenance@main
+        with:
+          subject-name: ${{ env.IMAGE_URL }}
+          subject-digest: ${{ steps.push.outputs.digest }}
+          push-to-true: false
+          rekor-url: http://internal-CodeLe-LoadB-pVpaDEdB6vXx-742236616.us-east-1.elb.amazonaws.com 
+      - name: Generate artifact attestation for IaC
+        id: provenance
+        uses: cplee/attest-build-provenance@main
+        with:
+          subject-path: bucket.tf
+          push-to-registry: false
+          rekor-url: http://internal-CodeLe-LoadB-pVpaDEdB6vXx-742236616.us-east-1.elb.amazonaws.com 
+      # - uses: actions/attest-sbom@v1
+      #   id: sbom
       #   with:
-      #     images: ${{ env.IMAGE_URL }}
-      # - uses: anchore/sbom-action@v0
-      #   with:
-      #     path: .
-      #     format: 'spdx-json'
-      #     output-file: 'sbom.spdx.json'
-      # - name: Build and push Docker image
-      #   id: push
-      #   uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-      #   with:
-      #     context: .
-      #     push: true
-      #     tags: ${{ steps.meta.outputs.tags }}
-      #     labels: ${{ steps.meta.outputs.labels }}
-      # - name: Generate artifact attestation
-      #   uses: actions/attest-build-provenance@v1
-      #   with:
-      #     subject-name: ${{ env.IMAGE_URL }}
-      #     subject-digest: ${{ steps.push.outputs.digest }}
+      #     subject-path: bucket.tf
+      #     sbom-path: 'sbom.spdx.json'
       #     push-to-registry: false
       # - uses: actions/attest-sbom@v1
       #   with:
@@ -61,18 +75,3 @@ jobs:
       #   with:
       #     name: iac
       #     path: bucket.tf
-      - name: Generate artifact attestation for IaC
-        id: provenance
-        uses: cplee/attest-build-provenance@main
-        with:
-          subject-path: bucket.tf
-          push-to-registry: false
-          rekor-url: http://internal-CodeLe-LoadB-pVpaDEdB6vXx-742236616.us-east-1.elb.amazonaws.com 
-      - run: ls -alFt ${steps.provenance.outputs.bundle-path}
-      # - uses: actions/attest-sbom@v1
-      #   id: sbom
-      #   with:
-      #     subject-path: bucket.tf
-      #     sbom-path: 'sbom.spdx.json'
-      #     push-to-registry: false
-      # - run: ls -alFt ${steps.sbom.outputs.bundle-path}
