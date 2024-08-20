@@ -32,11 +32,11 @@ jobs:
       #   uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
       #   with:
       #     images: ${{ env.IMAGE_URL }}
-      - uses: anchore/sbom-action@v0
-        with:
-          path: .
-          format: 'spdx-json'
-          output-file: 'sbom.spdx.json'
+      # - uses: anchore/sbom-action@v0
+      #   with:
+      #     path: .
+      #     format: 'spdx-json'
+      #     output-file: 'sbom.spdx.json'
       # - name: Build and push Docker image
       #   id: push
       #   uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
@@ -68,11 +68,11 @@ jobs:
           subject-path: bucket.tf
           push-to-registry: false
           rekor-url: http://internal-CodeLe-LoadB-pVpaDEdB6vXx-742236616.us-east-1.elb.amazonaws.com 
-      - uses: actions/attest-sbom@v1
-        id: sbom
-        with:
-          subject-path: bucket.tf
-          sbom-path: 'sbom.spdx.json'
-          push-to-registry: false
       - run: ls -alFt ${steps.provenance.outputs.bundle-path}
-      - run: ls -alFt ${steps.sbom.outputs.bundle-path}
+      # - uses: actions/attest-sbom@v1
+      #   id: sbom
+      #   with:
+      #     subject-path: bucket.tf
+      #     sbom-path: 'sbom.spdx.json'
+      #     push-to-registry: false
+      # - run: ls -alFt ${steps.sbom.outputs.bundle-path}
