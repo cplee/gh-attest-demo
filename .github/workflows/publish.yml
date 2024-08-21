@@ -73,7 +73,7 @@ jobs:
           push-to-registry: false
           rekor-url: ${{ env.REKOR_URL }}
       - name: Sign
-        run: cosign sign --yes rekor-url=${{env.REKOR_URL}} ${{env.REGISTRY}}/${{env.IMAGE_NAME}}@${{steps.push.outputs.digest}}
+        run: cosign sign --yes --rekor-url=${{env.REKOR_URL}} ${{env.REGISTRY}}/${{env.IMAGE_NAME}}@${{steps.push.outputs.digest}}
       # - uses: actions/attest-sbom@v1
       #   id: sbom
       #   with:
