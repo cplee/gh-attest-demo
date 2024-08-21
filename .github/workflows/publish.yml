@@ -75,7 +75,7 @@ jobs:
       - name: Sign Image
         run: cosign sign --yes --rekor-url=${{env.REKOR_URL}} ${{env.IMAGE_URL}}@${{steps.push.outputs.digest}}
       - name: Attest Image
-        run: cosign attest --yes --rekor-url=${{env.REKOR_URL}} --predicate predicate.json ${{env.IMAGE_URL}}@${{steps.push.outputs.digest}}
+        run: cosign attest --yes --rekor-url=${{env.REKOR_URL}} --predicate predicate.json --type=slsaprovenance1 ${{env.IMAGE_URL}}@${{steps.push.outputs.digest}}
       - name: Generate SBOM
         uses: anchore/sbom-action@v0
         with:
@@ -83,7 +83,7 @@ jobs:
           format: 'spdx-json'
           output-file: 'sbom.spdx.json'
       - name: Attest SBOM
-        run: cosign attest --yes --rekor-url=${{env.REKOR_URL}} --predicate sbom.spdx.json ${{env.IMAGE_URL}}@${{steps.push.outputs.digest}}
+        run: cosign attest --yes --rekor-url=${{env.REKOR_URL}} --predicate sbom.spdx.json --type=spdxjson ${{env.IMAGE_URL}}@${{steps.push.outputs.digest}}
       # - uses: actions/attest-sbom@v1
       #   id: sbom
       #   with:
