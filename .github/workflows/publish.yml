@@ -1,10 +1,8 @@
 name: publish
 
 env:
-  #REGISTRY: ghcr.io
-  #IMAGE_NAME: ${{ github.repository }}
   IMAGE_URL: 590184084703.dkr.ecr.us-east-1.amazonaws.com/gh-attest-demo
-  REKOR_URL: http://internal-CodeLe-LoadB-pVpaDEdB6vXx-742236616.us-east-1.elb.amazonaws.com
+  REKOR_URL: https://codeledger.caseypl.people.aws.dev
 
 on:
   workflow_dispatch:
@@ -29,12 +27,6 @@ jobs:
           fetch-depth: 0
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.6.0
-      # - name: Log in to the Container registry
-      #   uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
-      #   with:
-      #     registry: ${{ env.REGISTRY }}
-      #     username: ${{ github.actor }}
-      #     password: ${{ secrets.GITHUB_TOKEN }}
       - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
@@ -43,7 +35,6 @@ jobs:
         uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
         with:
           images: ${{ env.IMAGE_URL }}
-          # images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
@@ -84,19 +75,3 @@ jobs:
           output-file: 'sbom.spdx.json'
       - name: Attest SBOM
         run: cosign attest --yes --rekor-url=${{env.REKOR_URL}} --predicate sbom.spdx.json --type=spdxjson ${{env.IMAGE_URL}}@${{steps.push.outputs.digest}}
-      # - uses: actions/attest-sbom@v1
-      #   id: sbom
-      #   with:
-      #     subject-path: bucket.tf
-      #     sbom-path: 'sbom.spdx.json'
-      #     push-to-registry: false
-      # - uses: actions/attest-sbom@v1
-      #   with:
-      #     subject-name: ${{ env.IMAGE_URL }}
-      #     subject-digest: ${{ steps.push.outputs.digest }}
-      #     sbom-path: 'sbom.spdx.json'
-      #     push-to-registry: false
-      # - uses: actions/upload-artifact@v4
-      #   with:
-      #     name: iac
-      #     path: bucket.tf
