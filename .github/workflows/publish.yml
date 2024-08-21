@@ -44,11 +44,6 @@ jobs:
         with:
           images: ${{ env.IMAGE_URL }}
           # images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-      - uses: anchore/sbom-action@v0
-        with:
-          path: .
-          format: 'spdx-json'
-          output-file: 'sbom.spdx.json'
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
@@ -74,6 +69,13 @@ jobs:
           rekor-url: ${{ env.REKOR_URL }}
       - name: Sign
         run: cosign sign --yes --rekor-url=${{env.REKOR_URL}} ${{env.IMAGE_URL}}@${{steps.push.outputs.digest}}
+      - uses: anchore/sbom-action@v0
+        with:
+          path: .
+          format: 'spdx-json'
+          output-file: 'sbom.spdx.json'
+      - name: SBOM attest
+        run: cosign attest --yes --rekor-url=${{env.REKOR_URL}} --predicate sbom.spdx.json ${{env.IMAGE_URL}}@${{steps.push.outputs.digest}}
       # - uses: actions/attest-sbom@v1
       #   id: sbom
       #   with:
