@@ -52,29 +52,37 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-      - name: Generate artifact attestation
-        uses: cplee/attest-build-provenance@main
-        with:
-          subject-name: ${{ env.IMAGE_URL }}
-          # subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
-          subject-digest: ${{ steps.push.outputs.digest }}
-          push-to-registry: true
-          rekor-url: ${{ env.REKOR_URL }}
-      - name: Generate artifact attestation for IaC
+      - name: Generate build provenance predicate
+        uses: actions/attest-build-provenance/predicate@d58ddf9f241cd8163408934540d01c3335864d64 # predicate@1.1.2
         id: provenance
-        uses: cplee/attest-build-provenance@main
-        with:
-          subject-path: bucket.tf
-          push-to-registry: false
-          rekor-url: ${{ env.REKOR_URL }}
-      - name: Sign
+      - run: echo '${{steps.provenance.outputs.predicate}}' > predicate.json
+
+      # - name: Generate artifact attestation
+      #   uses: cplee/attest-build-provenance@main
+      #   with:
+      #     subject-name: ${{ env.IMAGE_URL }}
+      #     # subject-name: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME}}
+      #     subject-digest: ${{ steps.push.outputs.digest }}
+      #     push-to-registry: true
+      #     rekor-url: ${{ env.REKOR_URL }}
+      # - name: Generate artifact attestation for IaC
+      #   id: provenance
+      #   uses: cplee/attest-build-provenance@main
+      #   with:
+      #     subject-path: bucket.tf
+      #     push-to-registry: false
+      #     rekor-url: ${{ env.REKOR_URL }}
+      - name: Sign Image
         run: cosign sign --yes --rekor-url=${{env.REKOR_URL}} ${{env.IMAGE_URL}}@${{steps.push.outputs.digest}}
-      - uses: anchore/sbom-action@v0
+      - name: Attest Image
+        run: cosign attest --yes --rekor-url=${{env.REKOR_URL}} --predicate predicate.json ${{env.IMAGE_URL}}@${{steps.push.outputs.digest}}
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
         with:
           path: .
           format: 'spdx-json'
           output-file: 'sbom.spdx.json'
-      - name: SBOM attest
+      - name: Attest SBOM
         run: cosign attest --yes --rekor-url=${{env.REKOR_URL}} --predicate sbom.spdx.json ${{env.IMAGE_URL}}@${{steps.push.outputs.digest}}
       # - uses: actions/attest-sbom@v1
       #   id: sbom
